@@ -1,0 +1,46 @@
+def calculator():
+    print("\nCalculator")
+    print("----------")
+    try:
+        num1 = float(input("first number: "))
+        num2 = float(input("second number: "))
+        
+        # Display operation options
+        print("\nSelect operation:")
+        print("1. Addition (+)")
+        print("2. Subtraction (-)")
+        print("3. Multiplication (*)")
+        print("4. Division (/)")
+        
+        operation = input("Enter operation choice (1,2,3,4): ")
+        result = None
+        if operation == '1':
+            result = num1 + num2
+            print(f"\nResult: {num1} + {num2} = {result}")
+        elif operation == '2':
+            result = num1 - num2
+            print(f"\nResult: {num1} - {num2} = {result}")
+        elif operation == '3':
+            result = num1 * num2
+            print(f"\nResult: {num1} * {num2} = {result}")
+        elif operation == '4':
+            if num2 == 0:
+                print("\nError: Division by zero is not allowed!")
+            else:
+                result = num1 / num2
+                print(f"\nResult: {num1} / {num2} = {result}")
+        else:
+            print("\nInvalid operation choice!")
+        
+    except ValueError:
+        print("\nError: Please enter valid numbers!")
+    except Exception as e:
+        print(f"\nAn error occurred: {e}")
+        
+while True:
+    calculator()
+    another = input("\nWould you like to perform another calculation? (yes/no): ").lower()
+    if another != 'yes':
+        print("\nThank you")
+        break
+
