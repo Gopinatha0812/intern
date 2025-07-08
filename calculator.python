@@ -1,44 +1,171 @@
-def calculator():
-    print("\nCalculator")
-    print("----------")
-    try:
-        num1 = float(input("first number: "))
-        num2 = float(input("second number: "))
-        print("\nSelect operation:")
-        print("1. Addition (+)")
-        print("2. Subtraction (-)")
-        print("3. Multiplication (*)")
-        print("4. Division (/)")
-        
-        operation = input("Enter operation choice (1,2,3,4): ")
-        result = None
-        if operation == '1':
-            result = num1 + num2
-            print(f"\nResult: {num1} + {num2} = {result}")
-        elif operation == '2':
-            result = num1 - num2
-            print(f"\nResult: {num1} - {num2} = {result}")
-        elif operation == '3':
-            result = num1 * num2
-            print(f"\nResult: {num1} * {num2} = {result}")
-        elif operation == '4':
-            if num2 == 0:
-                print("\nError: Division by zero is not allowed!")
-            else:
-                result = num1 / num2
-                print(f"\nResult: {num1} / {num2} = {result}")
-        else:
-            print("\nInvalid operation choice!")
-        
-    except ValueError:
-        print("\nError: Please enter valid numbers!")
-    except Exception as e:
-        print(f"\nAn error occurred: {e}")
-        
-while True:
-    calculator()
-    another = input("\nWould you like to perform another calculation? (yes/no): ").lower()
-    if another != 'yes':
-        print("\nThank you")
-        break
+import tkinter as tk
+from tkinter import font as tkfont
 
+class Calculator:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Modern Calculator")
+        self.root.geometry("350x500")
+        self.root.resizable(False, False)
+        self.root.configure(bg="#f0f0f0")
+        
+        self.display_font = tkfont.Font(family='Helvetica', size=24, weight='bold')
+        self.button_font = tkfont.Font(family='Helvetica', size=16)
+        self.current_input = "0"
+        self.stored_value = None
+        self.current_operation = None
+        self.reset_input = False
+        self.operation_display = ""
+        self.create_display()
+        self.create_buttons()
+        
+    def create_display(self):
+        display_frame = tk.Frame(self.root, height=100, bg="#ffffff", bd=2, relief="ridge")
+        display_frame.pack(fill=tk.X, padx=10, pady=10)
+        self.operation_var = tk.StringVar()
+        self.operation_var.set("")
+        operation_label = tk.Label(
+            display_frame,
+            textvariable=self.operation_var,
+            font=tkfont.Font(family='Helvetica', size=12),
+            bg="#ffffff",
+            fg="#666666",
+            anchor="e",
+            padx=20
+        )
+        operation_label.pack(expand=True, fill=tk.X)
+        self.display_var = tk.StringVar()
+        self.display_var.set(self.current_input)
+        display_label = tk.Label(
+            display_frame,
+            textvariable=self.display_var,
+            font=self.display_font,
+            bg="#ffffff",
+            fg="#333333",
+            anchor="e",
+            padx=20
+        )
+        display_label.pack(expand=True, fill=tk.BOTH)
+        
+    def create_buttons(self):
+        num_color = "#f8f9fa"
+        op_color = "#e9ecef"
+        eq_color = "#007bff"
+        clr_color = "#dc3545"
+        
+        button_frame = tk.Frame(self.root, bg="#f0f0f0")
+        button_frame.pack(expand=True, fill=tk.BOTH, padx=10, pady=10)
+        buttons = [
+            ('Clear', clr_color), ('<--', clr_color), ('', op_color), ('÷', op_color),
+            ('7', num_color), ('8', num_color), ('9', num_color), ('×', op_color),
+            ('4', num_color), ('5', num_color), ('6', num_color), ('-', op_color),
+            ('1', num_color), ('2', num_color), ('3', num_color), ('+', op_color),
+            ('', num_color), ('0', num_color), ('.', num_color), ('=', eq_color)
+        ]
+        for i, (text, color) in enumerate(buttons):
+            btn = tk.Button(
+                button_frame,
+                text=text,
+                font=self.button_font,
+                bg=color,
+                fg="#333333" if text not in ['Clear', '=', '<--'] else "#ffffff",
+                bd=0,
+                relief="ridge",
+                command=lambda t=text: self.on_button_click(t)
+            )
+            btn.grid(row=i//4, column=i%4, sticky="nsew", padx=2, pady=2)
+            btn.config(activebackground="#d3d3d3" if color != eq_color else "#0056b3")
+            
+            if text == '':
+                btn.config(state=tk.DISABLED)
+        for i in range(4):
+            button_frame.columnconfigure(i, weight=1)
+        for i in range(5):
+            button_frame.rowconfigure(i, weight=1)
+    
+    def on_button_click(self, text):
+        if text.isdigit() or text == '.':
+            self.handle_number_input(text)
+        elif text in ['+', '-', '×', '÷']:
+            self.handle_operation(text)
+        elif text == '=':
+            self.calculate_result()
+        elif text == 'Clear':
+            self.clear_all()
+        elif text == '<--':
+            self.backspace()
+        
+        self.update_display()
+    
+    def handle_number_input(self, digit):
+        if self.reset_input:
+            self.current_input = "0"
+            self.reset_input = False
+        
+        if digit == '.':
+            if '.' not in self.current_input:
+                self.current_input += digit
+        else:
+            if self.current_input == "0":
+                self.current_input = digit
+            else:
+                self.current_input += digit
+    
+    def handle_operation(self, op):
+        if self.current_operation and not self.reset_input:
+            self.calculate_result()
+        
+        self.stored_value = float(self.current_input)
+        self.current_operation = op
+        self.reset_input = True
+        self.operation_display = f"{self.stored_value} {op}"
+        self.operation_var.set(self.operation_display)
+    
+    def calculate_result(self):
+        if self.current_operation and self.stored_value is not None:
+            current_value = float(self.current_input)
+            
+            if self.current_operation == '+':
+                result = self.stored_value + current_value
+            elif self.current_operation == '-':
+                result = self.stored_value - current_value
+            elif self.current_operation == '×':
+                result = self.stored_value * current_value
+            elif self.current_operation == '÷':
+                result = self.stored_value / current_value
+            
+            self.current_input = str(result)
+            self.stored_value = None
+            self.current_operation = None
+            self.reset_input = True
+            self.operation_display = ""
+            self.operation_var.set("")
+    
+    def clear_all(self):
+        self.current_input = "0"
+        self.stored_value = None
+        self.current_operation = None
+        self.reset_input = False
+        self.operation_display = ""
+        self.operation_var.set("")
+    
+    def backspace(self):
+        if len(self.current_input) > 1:
+            self.current_input = self.current_input[:-1]
+        else:
+            self.current_input = "0"
+    
+    def update_display(self):
+        if '.' in self.current_input and self.current_input.endswith('0'):
+            display_value = self.current_input.rstrip('0').rstrip('.')
+        else:
+            display_value = self.current_input
+            
+        if len(display_value) > 12:
+            display_value = display_value[:12]
+            
+        self.display_var.set(display_value)
+
+root = tk.Tk()
+calculator = Calculator(root)
+root.mainloop()
