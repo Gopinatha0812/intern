@@ -4,8 +4,6 @@ def calculator():
     try:
         num1 = float(input("first number: "))
         num2 = float(input("second number: "))
-        
-        # Display operation options
         print("\nSelect operation:")
         print("1. Addition (+)")
         print("2. Subtraction (-)")
