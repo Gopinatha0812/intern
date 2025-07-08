@@ -1,0 +1,64 @@
+import random
+
+def get_user_choice():
+    while True:
+        print("\nChoose: (R)ock, (P)aper, (S)cissors or (Q)uit")
+        choice = input("Your choice: ").strip().lower()
+        if choice in ['r', 'rock', 'p', 'paper', 's', 'scissors']:
+            return choice[0]  
+        elif choice in ['q', 'quit']:
+            return 'q'
+        print("Invalid input! Please try again.")
+
+def get_computer_choice():
+    return random.choice(['r', 'p', 's'])  
+
+def determine_winner(user, computer):
+    if user == computer:
+        return 'tie'
+    winning_combinations = [('r','s'), ('s','p'), ('p','r')]
+    return 'user' if (user, computer) in winning_combinations else 'computer'
+
+def display_choices(user, computer):
+    choices = {'r': 'Rock', 'p': 'Paper', 's': 'Scissors'}
+    print(f"\nYou chose: {choices[user]}")
+    print(f"Computer chose: {choices[computer]}")
+
+def play_round(scores):
+    user_choice = get_user_choice()
+    if user_choice == 'q':
+        return False
+    
+    computer_choice = get_computer_choice()
+    result = determine_winner(user_choice, computer_choice)
+    
+    display_choices(user_choice, computer_choice)
+    
+    if result == 'tie':
+        print("It's a tie!")
+    else:
+        winner = "You win!" if result == 'user' else "Computer wins!"
+        print(winner)
+    
+    scores[result] += 1
+    print(f"Score: You {scores['user']} - {scores['computer']} Computer")
+    return True
+
+def main():
+    print("=== Rock Paper Scissors ===")
+    print("Rules: Rock beats Scissors, Scissors beat Paper, Paper beats Rock")
+    
+    scores = {'user': 0, 'computer': 0, 'tie': 0}
+    
+    while play_round(scores):
+        continue
+    
+    print("\nFinal Score:")
+    print(f"You won {scores['user']} times")
+    print(f"Computer won {scores['computer']} times")
+    print(f"Ties: {scores['tie']}")
+    print("\nThanks for playing!")
+
+if __name__ == "__main__":
+    main()
+
