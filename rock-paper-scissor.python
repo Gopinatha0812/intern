@@ -1,64 +1,189 @@
+import tkinter as tk
+from tkinter import messagebox
 import random
 
-def get_user_choice():
-    while True:
-        print("\nChoose: (R)ock, (P)aper, (S)cissors or (Q)uit")
-        choice = input("Your choice: ").strip().lower()
-        if choice in ['r', 'rock', 'p', 'paper', 's', 'scissors']:
-            return choice[0]  
-        elif choice in ['q', 'quit']:
-            return 'q'
-        print("Invalid input! Please try again.")
+class RockPaperScissors:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Rock Paper Scissors")
+        self.root.geometry("600x700")
+        self.root.configure(bg="#2a2a2a")
+        self.root.resizable(False, False)
 
-def get_computer_choice():
-    return random.choice(['r', 'p', 's'])  
+        self.colors = {
+            "bg": "#2a2a2a",
+            "card_bg": "#3a3a3a",
+            "text": "#ffffff",
+            "primary": "#4a90e2",
+            "secondary": "#e74c3c",
+            "accent": "#2ecc71"
+        }
+        self.choices = {
+            "rock": {"emoji": "", "beats": "scissors"},
+            "paper": {"emoji": "", "beats": "rock"},
+            "scissors": {"emoji": "", "beats": "paper"}
+        }
+        self.scores = {"player": 0, "computer": 0, "tie": 0}
+        self.create_widgets()
 
-def determine_winner(user, computer):
-    if user == computer:
-        return 'tie'
-    winning_combinations = [('r','s'), ('s','p'), ('p','r')]
-    return 'user' if (user, computer) in winning_combinations else 'computer'
+    def create_widgets(self):
+        header = tk.Frame(self.root, bg=self.colors["bg"])
+        header.pack(pady=20)
 
-def display_choices(user, computer):
-    choices = {'r': 'Rock', 'p': 'Paper', 's': 'Scissors'}
-    print(f"\nYou chose: {choices[user]}")
-    print(f"Computer chose: {choices[computer]}")
+        tk.Label(
+            header,
+            text="ROCK PAPER SCISSORS",
+            font=("Arial", 24, "bold"),
+            fg=self.colors["primary"],
+            bg=self.colors["bg"]
+        ).pack()
+        self.score_var = tk.StringVar()
+        self.update_score()
+        tk.Label(
+            header,
+            textvariable=self.score_var,
+            font=("Arial", 14),
+            fg=self.colors["text"],
+            bg=self.colors["bg"]
+        ).pack(pady=10)
+        game_frame = tk.Frame(self.root, bg=self.colors["bg"])
+        game_frame.pack()
+        
+        choices_frame = tk.Frame(game_frame, bg=self.colors["bg"])
+        choices_frame.pack(pady=20)
 
-def play_round(scores):
-    user_choice = get_user_choice()
-    if user_choice == 'q':
-        return False
-    
-    computer_choice = get_computer_choice()
-    result = determine_winner(user_choice, computer_choice)
-    
-    display_choices(user_choice, computer_choice)
-    
-    if result == 'tie':
-        print("It's a tie!")
-    else:
-        winner = "You win!" if result == 'user' else "Computer wins!"
-        print(winner)
-    
-    scores[result] += 1
-    print(f"Score: You {scores['user']} - {scores['computer']} Computer")
-    return True
+        tk.Label(
+            choices_frame,
+            text="CHOOSE YOUR WEAPON:",
+            font=("Arial", 12, "bold"),
+            fg=self.colors["text"],
+            bg=self.colors["bg"]
+        ).pack()
 
-def main():
-    print("=== Rock Paper Scissors ===")
-    print("Rules: Rock beats Scissors, Scissors beat Paper, Paper beats Rock")
-    
-    scores = {'user': 0, 'computer': 0, 'tie': 0}
-    
-    while play_round(scores):
-        continue
-    
-    print("\nFinal Score:")
-    print(f"You won {scores['user']} times")
-    print(f"Computer won {scores['computer']} times")
-    print(f"Ties: {scores['tie']}")
-    print("\nThanks for playing!")
+        buttons_frame = tk.Frame(choices_frame, bg=self.colors["bg"])
+        buttons_frame.pack(pady=10)
 
+        for choice in self.choices:
+            btn = tk.Button(
+                buttons_frame,
+                text=f"{self.choices[choice]['emoji']} {choice.upper()}",
+                font=("Arial", 14),
+                bg=self.colors["card_bg"],
+                fg=self.colors["text"],
+                activebackground=self.colors["primary"],
+                activeforeground="white",
+                relief=tk.FLAT,
+                borderwidth=0,
+                padx=20,
+                pady=10,
+                command=lambda c=choice: self.play_round(c)
+            )
+            btn.pack(side=tk.LEFT, padx=10, ipadx=10)
+            btn.bind("<Enter>", lambda e, b=btn: b.config(bg=self.colors["primary"]))
+            btn.bind("<Leave>", lambda e, b=btn: b.config(bg=self.colors["card_bg"]))
+
+        battle_frame = tk.Frame(game_frame, bg=self.colors["bg"])
+        battle_frame.pack(pady=20)
+
+        self.player_choice = tk.Label(
+            battle_frame,
+            text="Waiting...",
+            font=("Arial", 14),
+            fg=self.colors["primary"],
+            bg=self.colors["bg"]
+        )
+        self.player_choice.pack(side=tk.LEFT, padx=20)
+
+        tk.Label(
+            battle_frame,
+            text="VS",
+            font=("Arial", 16, "bold"),
+            fg=self.colors["accent"],
+            bg=self.colors["bg"]
+        ).pack(side=tk.LEFT, padx=20)
+
+        self.computer_choice = tk.Label(
+            battle_frame,
+            text="Waiting...",
+            font=("Arial", 14),
+            fg=self.colors["secondary"],
+            bg=self.colors["bg"]
+        )
+        self.computer_choice.pack(side=tk.LEFT, padx=20)
+
+        self.result_var = tk.StringVar()
+        self.result_var.set("Make your move!")
+        tk.Label(
+            game_frame,
+            textvariable=self.result_var,
+            font=("Arial", 16, "bold"),
+            fg=self.colors["accent"],
+            bg=self.colors["bg"]
+        ).pack(pady=20)
+        action_frame = tk.Frame(self.root, bg=self.colors["bg"])
+        action_frame.pack(pady=20)
+
+        tk.Button(
+            action_frame,
+            text="Reset Game",
+            font=("Arial", 12),
+            bg=self.colors["card_bg"],
+            fg=self.colors["text"],
+            activebackground=self.colors["primary"],
+            activeforeground="white",
+            relief=tk.FLAT,
+            command=self.reset_game
+        ).pack(side=tk.LEFT, padx=10)
+
+        tk.Button(
+            action_frame,
+            text="Quit",
+            font=("Arial", 12),
+            bg=self.colors["secondary"],
+            fg="white",
+            activebackground="#c0392b",
+            activeforeground="white",
+            relief=tk.FLAT,
+            command=self.quit_game
+        ).pack(side=tk.LEFT, padx=10)
+
+    def play_round(self, player_choice):
+        computer_choice = random.choice(list(self.choices.keys()))
+        self.player_choice.config(text=f"You: {self.choices[player_choice]['emoji']}")
+        self.computer_choice.config(text=f"Comp: {self.choices[computer_choice]['emoji']}")
+        if player_choice == computer_choice:
+            result = "tie"
+            message = " It's a tie!"
+        elif self.choices[player_choice]["beats"] == computer_choice:
+            result = "player"
+            message = f" You win! {player_choice} beats {computer_choice}"
+        else:
+            result = "computer"
+            message = f" Computer wins! {computer_choice} beats {player_choice}"
+        
+        self.scores[result] += 1
+        self.update_score()
+        self.result_var.set(message)
+
+    def update_score(self):
+        self.score_var.set(f"Player: {self.scores['player']}  |  Computer: {self.scores['computer']}  |  Ties: {self.scores['tie']}")
+
+    def reset_game(self):
+        self.scores = {"player": 0, "computer": 0, "tie": 0}
+        self.update_score()
+        self.player_choice.config(text="Waiting...")
+        self.computer_choice.config(text="Waiting...")
+        self.result_var.set("Game reset! Make your move!")
+
+    def quit_game(self):
+        if messagebox.askyesno(
+            "Quit Game", 
+            f"Final Scores:\nPlayer: {self.scores['player']}\nComputer: {self.scores['computer']}\nTies: {self.scores['tie']}\n\nQuit game?"
+        ):
+            self.root.destroy()
+            
 if __name__ == "__main__":
-    main()
+    root = tk.Tk()
+    game = RockPaperScissors(root)
+    root.mainloop()
 
